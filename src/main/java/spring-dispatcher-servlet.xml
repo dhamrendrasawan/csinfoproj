@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans   xmlns:tx="http://www.springframework.org/schema/tx"
+xmlns:cache="http://www.springframework.org/schema/cache"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:security="http://www.springframework.org/schema/security"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xmlns:jee="http://www.springframework.org/schema/jee"
+xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:p="http://www.springframework.org/schema/p"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://www.springframework.org/schema/beans"
+ xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+ http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+ http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+ http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+ http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+ http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+ http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd
+ http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+ http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">		
+ 
+
+ 	<!-- It register the beans in context and scan the annotations inside beans and activate them -->
+    <context:component-scan base-package="genweb.Controller" />
+    <context:component-scan base-package="genweb.domain" />
+    <context:component-scan base-package="genweb.model" />
+    <context:component-scan base-package="genweb.service" />
+    <context:component-scan base-package="genweb.serviceImpl" />
+    <context:component-scan base-package="genweb.springdatajpa" />
+    <context:component-scan base-package="genweb.springdatajpaImpl" />
+    
+  
+    
+   
+     <tx:annotation-driven />
+     <mvc:annotation-driven/>
+      <context:annotation-config/>
+     
+    
+    <!-- This allow for dispatching requests to Controllers by registering 
+    	 two beans - DefaultAnnotationHandlerMapping and AnnotationMethodHandlerAdapter -->
+   
+     
+    <!-- This helps in mapping the logical view names to directly view files under a certain pre-configured directory -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+     
+    
+       <jpa:repositories base-package="genweb.springdatajpaImpl" transaction-manager-ref="transactionManager" entity-manager-factory-ref="entityManagerFactoryBean"/>
+     
+     <!-- <bean class="genweb.serviceImpl.RegistrationServiceImpl" id="registrationServiceImpl"/> -->
+     
+     
+    <!-- This resolves messages from resource bundles for different locales --> 
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename" value="messages" />
+    </bean>
+    
+    <!-- To validate the posted add employee form -->
+   <!--  <bean id="employeeValidator" class="com.howtodoinjava.demo.validator.EmployeeValidator" /> -->
+    
+    <!-- This produces a container-managed EntityManagerFactory; 
+    	 rather than application-managed EntityManagerFactory as in case of LocalEntityManagerFactoryBean-->
+    	 
+    <bean id="entityManagerFactoryBean" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+      <property name="dataSource" ref="dataSource" />
+      
+      <!-- This makes /META-INF/persistence.xml is no longer necessary -->
+      <property name="packagesToScan" value="genweb.domain" />
+      <!-- JpaVendorAdapter implementation for Hibernate EntityManager.
+      	   Exposes Hibernate's persistence provider and EntityManager extension interface -->
+      <property name="jpaVendorAdapter">
+         <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+      </property>
+      <property name="jpaProperties">
+         <props>
+            <prop key="hibernate.hbm2ddl.auto">none</prop>
+            <prop key="hibernate.dialect">org.hibernate.dialect.OracleDialect</prop>
+            <prop key="show_sql">True</prop>
+         </props>
+      </property>
+   </bean>
+ 
+   <!-- Simple implementation of the standard JDBC DataSource interface, 
+   		configuring the plain old JDBC DriverManager via bean properties -->
+   <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+      <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+     <!--  <property name="url" value="jdbc:oracle://localhost:1521:xe" /> -->
+       <property name="url" value="jdbc:oracle:thin:@localhost:1521:xe" />
+      
+      <property name="username" value="system" />
+      <property name="password" value="root" />
+   </bean>
+    
+    <!-- This transaction manager is appropriate for applications that use a single JPA EntityManagerFactory for transactional data access. 
+    	JTA (usually through JtaTransactionManager) is necessary for accessing multiple transactional resources within the same transaction. -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+      <property name="entityManagerFactory" ref="entityManagerFactoryBean" />
+   </bean>
+   
+   <!-- responsible for registering the necessary Spring components that power annotation-driven transaction management; 
+        such as when @Transactional methods are invoked -->
+   
+   
+  <!-- <tx:annotation-driven transaction-manager="transactionManager" /> -->
+   
+  <!--  <mvc:resources mapping="/resources/**" location="/resources/*" cache-period="31556926"/> -->
+   <mvc:resources mapping="webapp/resources/images/**" location="/images/"/> 
+   
+   <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean" >
+    <property name="dataSource" ref="dataSource" />
+    <property name="configLocation" value="classpath:hibernate.cfg.xml" />
+    </bean>
+   
+    <!--  <bean id="mysessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean" >
+    <property name="dataSource" ref="dba" />
+    <property name="configLocation" value="classpath:hibernate.cfg.xml" />
+    </bean>  -->
+   
+</beans>
